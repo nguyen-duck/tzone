@@ -17,7 +17,7 @@ type BrandRepository struct {
 	brandCollection string
 }
 
-func NewMongoDbRepository() *BrandRepository {
+func NewBrandRepository() *BrandRepository {
 	return &BrandRepository{
 		database:        "Cluster0",
 		brandCollection: "brands",
