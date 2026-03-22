@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/LuuDinhTheTai/tzone/util/jwt"
 )
 
 // auth
@@ -48,12 +49,12 @@ func (s *AuthService) Register(email string, password string) error {
 }
 
 // login
-func (s *AuthService) Login(email string, password string) (*model.User, error) {
+func (s *AuthService) Login(email string, password string) (string, *model.User, error) {
 
 	user, err := s.userRepo.FindByEmail(email)
 
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return "", nil, errors.New("invalid email or password")
 	}
 
 	err = bcrypt.CompareHashAndPassword(
@@ -62,8 +63,13 @@ func (s *AuthService) Login(email string, password string) (*model.User, error) 
 	)
 
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return "", nil, errors.New("invalid email or password")
 	}
 
-	return user, nil
+	token, err := jwt.GenerateToken(user.ID)
+	if err != nil {
+		return "", nil, errors.New("failed to generate token")
+	}
+
+	return token, user, nil
 }

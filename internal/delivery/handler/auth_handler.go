@@ -5,6 +5,7 @@ import (
 
 	"github.com/LuuDinhTheTai/tzone/internal/dto"
 	"github.com/LuuDinhTheTai/tzone/internal/service"
+	"github.com/LuuDinhTheTai/tzone/util/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,20 +24,18 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
 	err := h.authService.Register(req.Email, req.Password)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "register success",
-	})
+	response.Success(c, http.StatusCreated, "register success", nil)
 }
 
 // login endpoint
@@ -45,18 +44,22 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
-	user, err := h.authService.Login(req.Email, req.Password)
+	token, user, err := h.authService.Login(req.Email, req.Password)
 
 	if err != nil {
-		c.JSON(401, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusUnauthorized, err.Error(), nil)
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"user_id": user.ID,
+	response.Success(c, http.StatusOK, "login success", gin.H{
+		"token": token,
+		"user": gin.H{
+			"id":    user.ID,
+			"email": user.Email,
+		},
 	})
 }
