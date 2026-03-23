@@ -35,10 +35,8 @@ func (s *BrandService) CreateBrand(ctx context.Context, req dto.CreateBrandReque
 	}
 
 	response := &dto.BrandResponse{
-		Id:        createdBrand.Id.Hex(),
-		Name:      createdBrand.Name,
-		CreatedAt: createdBrand.CreatedAt,
-		UpdatedAt: createdBrand.UpdatedAt,
+		Id:   createdBrand.Id.Hex(),
+		Name: createdBrand.Name,
 	}
 
 	log.Printf("✅ Brand created successfully: %s", response.Name)
@@ -55,10 +53,8 @@ func (s *BrandService) GetBrandById(ctx context.Context, id string) (*dto.BrandR
 	}
 
 	response := &dto.BrandResponse{
-		Id:        brand.Id.Hex(),
-		Name:      brand.Name,
-		CreatedAt: brand.CreatedAt,
-		UpdatedAt: brand.UpdatedAt,
+		Id:   brand.Id.Hex(),
+		Name: brand.Name,
 	}
 
 	return response, nil
@@ -76,10 +72,8 @@ func (s *BrandService) GetAllBrands(ctx context.Context) (*dto.BrandListResponse
 	var brandResponses []dto.BrandResponse
 	for _, brand := range brands {
 		brandResponses = append(brandResponses, dto.BrandResponse{
-			Id:        brand.Id.Hex(),
-			Name:      brand.Name,
-			CreatedAt: brand.CreatedAt,
-			UpdatedAt: brand.UpdatedAt,
+			Id:   brand.Id.Hex(),
+			Name: brand.Name,
 		})
 	}
 
@@ -106,10 +100,8 @@ func (s *BrandService) UpdateBrand(ctx context.Context, id string, req dto.Updat
 	}
 
 	response := &dto.BrandResponse{
-		Id:        updatedBrand.Id.Hex(),
-		Name:      updatedBrand.Name,
-		CreatedAt: updatedBrand.CreatedAt,
-		UpdatedAt: updatedBrand.UpdatedAt,
+		Id:   updatedBrand.Id.Hex(),
+		Name: updatedBrand.Name,
 	}
 
 	log.Printf("✅ Brand updated successfully: %s", response.Name)

@@ -4,7 +4,6 @@ import "go.mongodb.org/mongo-driver/v2/bson"
 
 type Device struct {
 	ID             bson.ObjectID  `bson:"_id,omitempty" json:"id,omitempty"`
-	BrandID        bson.ObjectID  `bson:"brand_id,omitempty" json:"brand_id,omitempty"`
 	ModelName      string         `bson:"model_name" json:"model_name,omitempty"`
 	ImageUrl       string         `bson:"imageUrl" json:"imageUrl,omitempty"`
 	Specifications Specifications `bson:"specifications" json:"specifications,omitempty"`

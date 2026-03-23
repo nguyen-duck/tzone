@@ -1,17 +1,13 @@
 package dto
 
 import (
-	"time"
-
 	"github.com/LuuDinhTheTai/tzone/internal/model"
 )
 
 // BrandResponse represents the response structure for a brand
 type BrandResponse struct {
-	Id        string    `json:"id"`
-	Name      string    `json:"brand_name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Id   string `json:"id"`
+	Name string `json:"brand_name"`
 }
 
 // BrandListResponse represents the response structure for a list of brands
