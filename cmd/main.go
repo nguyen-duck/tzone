@@ -4,6 +4,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/LuuDinhTheTai/tzone/infrastructure/configuration"
 	"github.com/LuuDinhTheTai/tzone/infrastructure/database"
@@ -35,9 +36,23 @@ func main() {
 	var db *gorm.DB
 
 	if cfg.Database.Supabase.URL != "" {
+		// Add prepared_statement_cache_size=0 to disable prepared statement caching
+		// This prevents "prepared statement already exists" errors
+		dsn := cfg.Database.Supabase.URL
+		if !strings.Contains(dsn, "prepared_statement_cache_size") {
+			separator := "?"
+			if strings.Contains(dsn, "?") {
+				separator = "&"
+			}
+			dsn = dsn + separator + "prepared_statement_cache_size=0"
+		}
 
+		// Also disable prepared statements in the driver to avoid any caching issues
 		dbTemp, err := gorm.Open(
-			postgres.Open(cfg.Database.Supabase.URL),
+			postgres.New(postgres.Config{
+				DSN:                  dsn,
+				PreferSimpleProtocol: true, // Disable prepared statements entirely
+			}),
 			&gorm.Config{},
 		)
 
