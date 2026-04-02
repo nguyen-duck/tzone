@@ -7,4 +7,7 @@ import (
 
 func MapCommonRoutes(r *gin.Engine, commonHandler *handler.CommonHandler) {
 	r.GET("/", commonHandler.IndexHandler)
+	r.GET("/signup", commonHandler.SignupHandler)
+	r.GET("/all-brands", commonHandler.AllBrandHandler)
+	r.GET("/brand", commonHandler.BrandHandler)
 }

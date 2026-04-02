@@ -82,7 +82,7 @@ func Header() g.Node {
 						),
 						h.A(h.Class("forgot"), h.Href("forgot.php3"), g.Text("I forgot my password")),
 					),
-					h.A(h.Href("register.php3"), h.Class("signup-icon no-margin-right"),
+					h.A(h.Href("/signup"), h.Class("signup-icon no-margin-right"),
 						h.I(h.Class("head-icon icon-user-plus")), h.Span(h.Class("icon-count"), g.Text("Sign up")),
 					),
 				),
