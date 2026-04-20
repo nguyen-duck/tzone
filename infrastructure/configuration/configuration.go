@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
+	Cache    CacheConfig
 }
 
 type ServerConfig struct {
@@ -35,6 +36,14 @@ type PostgresConfig struct {
 type SupabaseConfig struct {
 	URL string
 	Key string
+}
+
+type CacheConfig struct {
+	Redis RedisConfig
+}
+
+type RedisConfig struct {
+	URL string
 }
 
 // LoadEnv loads environment variables from .env file and returns configuration.
@@ -107,6 +116,13 @@ func LoadEnv() Config {
 		log.Println("✅ SUPABASE_KEY configured")
 	}
 
+	redisURL := strings.TrimSpace(os.Getenv("REDIS_URL"))
+	if redisURL == "" {
+		log.Println("⚠️ REDIS_URL not set - cache will run in no-cache mode")
+	} else {
+		log.Println("✅ REDIS_URL configured")
+	}
+
 	log.Println("✅ Configuration loaded successfully")
 
 	return Config{
@@ -123,6 +139,11 @@ func LoadEnv() Config {
 			Supabase: SupabaseConfig{
 				URL: supabaseURL,
 				Key: supabaseKey,
+			},
+		},
+		Cache: CacheConfig{
+			Redis: RedisConfig{
+				URL: redisURL,
 			},
 		},
 	}

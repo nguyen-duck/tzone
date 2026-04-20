@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/LuuDinhTheTai/tzone/infrastructure/cache"
 	"github.com/LuuDinhTheTai/tzone/infrastructure/configuration"
 	"github.com/LuuDinhTheTai/tzone/infrastructure/database"
 	server2 "github.com/LuuDinhTheTai/tzone/internal/server"
@@ -96,12 +97,29 @@ func main() {
 		log.Println("⚠️ Supabase not configured, skipping...")
 	}
 
+	var redisClient interface{}
+	if cfg.Cache.Redis.URL != "" {
+		client, _, cancel, errCache := cache.Connect(cfg.Cache.Redis.URL)
+		if errCache != nil {
+			log.Printf("⚠️ Redis connection failed: %v", errCache)
+			slog.Warn("Redis connect warning", "error", errCache)
+			log.Println("⚠️ Continuing without Redis cache...")
+		} else {
+			redisClient = client
+			defer cancel()
+			defer cache.Close(client)
+			log.Println("✅ Redis connected and ready")
+		}
+	} else {
+		log.Println("⚠️ Redis not configured, skipping...")
+	}
+
 	// Initialize Gin router
 	log.Println("🔧 Initializing HTTP server...")
 	r := gin.Default()
 
 	// Create server with available database connections
-	server := server2.NewServer(r, cfg, db, mongoClient, supaClient)
+	server := server2.NewServer(r, cfg, db, mongoClient, supaClient, redisClient)
 
 	// Start server
 	log.Printf("🌐 Starting HTTP server on port %s...", cfg.Server.Port)

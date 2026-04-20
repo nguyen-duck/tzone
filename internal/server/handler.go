@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"time"
 
 	"github.com/LuuDinhTheTai/tzone/internal/delivery/handler"
 	"github.com/LuuDinhTheTai/tzone/internal/delivery/route"
@@ -22,6 +23,7 @@ func (s *Server) MapHandlers() error {
 		&model.User{},
 		&model.RefreshToken{},
 		&model.Favorite{},
+		&model.Review{},
 		&model.Role{},
 		&model.UserRole{},
 		&model.Action{},
@@ -53,10 +55,11 @@ func (s *Server) MapHandlers() error {
 
 	// Init auth service
 	authService := service.NewAuthService(userRepo, tokenRepo)
+	cacheService := service.NewCacheService(s.redisClient, 3*time.Minute)
 
 	// Init service
-	brandService := service.NewBrandService(brandRepo)
-	deviceService := service.NewDeviceService(deviceRepo)
+	brandService := service.NewBrandService(brandRepo, cacheService)
+	deviceService := service.NewDeviceService(deviceRepo, cacheService)
 	favoriteService := service.NewFavoriteService(favoriteRepo, deviceRepo)
 	permissionService := service.NewPermissionService(permissionRepo)
 	log.Printf("✅ Services initialized")

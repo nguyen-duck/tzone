@@ -79,6 +79,10 @@ graph TB
         Mongo["MongoDB<br/>Brands, Devices,<br/>Specifications"]
     end
 
+    subgraph Cache["⚡ Cache Layer"]
+        Redis["Redis<br/>List/Finder Cache<br/>Invalidation on Write"]
+    end
+
     subgraph External["🔗 External Services"]
         MinIO["MinIO<br/>Object Storage<br/>Device Images"]
         SMTP["SMTP<br/>Email Service<br/>OTP Codes"]
@@ -89,6 +93,8 @@ graph TB
     API --> Handler
     Handler --> Service
     Service --> Repository
+    Service -->|Get/Set| Cache
+    Service -->|Invalidate| Cache
     Repository -->|SQL| DB
     Repository -->|Query| DB
     Service -->|Upload| External
@@ -101,6 +107,7 @@ graph TB
     style Service fill:#e8f5e9
     style Repository fill:#fce4ec
     style DB fill:#ede7f6
+    style Cache fill:#e0f2f1
     style External fill:#fff9c4
 ```
 
@@ -375,6 +382,7 @@ graph LR
     
     PG["🐘 PostgreSQL<br/>Port 5432"]
     Mongo["🍃 MongoDB<br/>Port 27017"]
+    Redis["⚡ Redis<br/>Port 6379"]
     MinIO["📦 MinIO<br/>Port 9000"]
     SMTP["📧 SMTP<br/>Email Service"]
     
@@ -384,6 +392,7 @@ graph LR
     
     Container -->|Query| PG
     Container -->|Query| Mongo
+    Container -->|Cache Get/Set| Redis
     Container -->|Upload/Get| MinIO
     Container -->|Send OTP| SMTP
     
@@ -393,6 +402,7 @@ graph LR
     style Container fill:#f8bbd0
     style PG fill:#e0f2f1
     style Mongo fill:#c8e6c9
+    style Redis fill:#dcedc8
     style MinIO fill:#f3e5f5
 ```
 
@@ -428,6 +438,7 @@ docker compose up --build
 - **API:** http://localhost:8080
 - **PostgreSQL:** `localhost:5432`
 - **MongoDB:** `localhost:27017`
+- **Redis:** `localhost:6379`
 - **MinIO API:** http://localhost:9000
 - **MinIO Console:** http://localhost:9001
 

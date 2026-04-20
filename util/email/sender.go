@@ -2,7 +2,6 @@ package email
 
 import (
 	"fmt"
-	"net/mail"
 	"net/smtp"
 	"os"
 	"strings"
@@ -23,17 +22,9 @@ func SendOTP(to string, otp string, purpose string) error {
 		from = user
 	}
 
-	envelopeFrom := from
-	fromHeader := from
-	if parsed, err := mail.ParseAddress(from); err == nil {
-		envelopeFrom = parsed.Address
-		fromHeader = parsed.String()
-	}
-
 	subject := "TZone verification code"
 	body := fmt.Sprintf("Your verification code for %s is: %s\nThis code expires in 5 minutes.", purpose, otp)
 	msg := []byte("To: " + to + "\r\n" +
-		"From: " + fromHeader + "\r\n" +
 		"Subject: " + subject + "\r\n" +
 		"MIME-Version: 1.0\r\n" +
 		"Content-Type: text/plain; charset=UTF-8\r\n\r\n" +
@@ -42,5 +33,5 @@ func SendOTP(to string, otp string, purpose string) error {
 	auth := smtp.PlainAuth("", user, pass, host)
 	addr := host + ":" + port
 
-	return smtp.SendMail(addr, auth, envelopeFrom, []string{to}, msg)
+	return smtp.SendMail(addr, auth, from, []string{to}, msg)
 }

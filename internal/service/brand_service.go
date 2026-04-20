@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 
 	"github.com/LuuDinhTheTai/tzone/internal/dto"
 	"github.com/LuuDinhTheTai/tzone/internal/model"
@@ -12,12 +13,27 @@ import (
 
 type BrandService struct {
 	mongoDbRepo *repository.BrandRepository
+	cache       *CacheService
 }
 
-func NewBrandService(mongoDbRepo *repository.BrandRepository) *BrandService {
+func NewBrandService(mongoDbRepo *repository.BrandRepository, cache *CacheService) *BrandService {
 	return &BrandService{
 		mongoDbRepo: mongoDbRepo,
+		cache:       cache,
 	}
+}
+
+const (
+	brandCachePrefixList   = "brands:list:"
+	brandCachePrefixSearch = "brands:search:"
+)
+
+func brandListCacheKey(page int, limit int) string {
+	return fmt.Sprintf("%sp=%d:l=%d", brandCachePrefixList, page, limit)
+}
+
+func brandSearchCacheKey(name string, page int, limit int) string {
+	return fmt.Sprintf("%sname=%s:p=%d:l=%d", brandCachePrefixSearch, url.QueryEscape(name), page, limit)
 }
 
 func buildPaginationMeta(total int64, page int, limit int) dto.PaginationMeta {
@@ -55,6 +71,9 @@ func (s *BrandService) CreateBrand(ctx context.Context, req dto.CreateBrandReque
 	}
 
 	log.Printf("✅ Brand created successfully: %s", response.Name)
+	if err := s.cache.DeleteByPrefixes(ctx, brandCachePrefixList, brandCachePrefixSearch); err != nil {
+		log.Printf("⚠️ Failed to invalidate brand caches: %v", err)
+	}
 	return response, nil
 }
 
@@ -78,6 +97,12 @@ func (s *BrandService) GetBrandById(ctx context.Context, id string) (*dto.BrandR
 // GetAllBrands retrieves paginated brands
 func (s *BrandService) GetAllBrands(ctx context.Context, page int, limit int) (*dto.BrandListResponse, error) {
 	log.Printf("🔄 Fetching brands (page=%d, limit=%d)", page, limit)
+	cacheKey := brandListCacheKey(page, limit)
+
+	var cached dto.BrandListResponse
+	if hit, err := s.cache.GetJSON(ctx, cacheKey, &cached); err == nil && hit {
+		return &cached, nil
+	}
 
 	brands, total, err := s.mongoDbRepo.GetAllBrands(ctx, page, limit)
 	if err != nil {
@@ -97,6 +122,9 @@ func (s *BrandService) GetAllBrands(ctx context.Context, page int, limit int) (*
 		Total:      int(total),
 		Pagination: buildPaginationMeta(total, page, limit),
 	}
+	if err := s.cache.SetJSON(ctx, cacheKey, response); err != nil {
+		log.Printf("⚠️ Failed to set brands list cache: %v", err)
+	}
 
 	log.Printf("✅ Retrieved %d brands", response.Total)
 	return response, nil
@@ -105,6 +133,12 @@ func (s *BrandService) GetAllBrands(ctx context.Context, page int, limit int) (*
 // SearchBrandsByName retrieves paginated brands matching name
 func (s *BrandService) SearchBrandsByName(ctx context.Context, name string, page int, limit int) (*dto.BrandListResponse, error) {
 	log.Printf("🔄 Searching brands by name=%s (page=%d, limit=%d)", name, page, limit)
+	cacheKey := brandSearchCacheKey(name, page, limit)
+
+	var cached dto.BrandListResponse
+	if hit, err := s.cache.GetJSON(ctx, cacheKey, &cached); err == nil && hit {
+		return &cached, nil
+	}
 
 	brands, total, err := s.mongoDbRepo.SearchBrandsByName(ctx, name, page, limit)
 	if err != nil {
@@ -123,6 +157,9 @@ func (s *BrandService) SearchBrandsByName(ctx context.Context, name string, page
 		Brands:     brandResponses,
 		Total:      int(total),
 		Pagination: buildPaginationMeta(total, page, limit),
+	}
+	if err := s.cache.SetJSON(ctx, cacheKey, response); err != nil {
+		log.Printf("⚠️ Failed to set brands search cache: %v", err)
 	}
 
 	log.Printf("✅ Retrieved %d matching brands", response.Total)
@@ -148,6 +185,9 @@ func (s *BrandService) UpdateBrand(ctx context.Context, id string, req dto.Updat
 	}
 
 	log.Printf("✅ Brand updated successfully: %s", response.Name)
+	if err := s.cache.DeleteByPrefixes(ctx, brandCachePrefixList, brandCachePrefixSearch); err != nil {
+		log.Printf("⚠️ Failed to invalidate brand caches: %v", err)
+	}
 	return response, nil
 }
 
@@ -172,5 +212,8 @@ func (s *BrandService) DeleteBrand(ctx context.Context, id string) error {
 	}
 
 	log.Printf("✅ Brand deleted successfully")
+	if err := s.cache.DeleteByPrefixes(ctx, brandCachePrefixList, brandCachePrefixSearch); err != nil {
+		log.Printf("⚠️ Failed to invalidate brand caches: %v", err)
+	}
 	return nil
 }

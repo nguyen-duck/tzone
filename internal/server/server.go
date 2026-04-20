@@ -6,6 +6,7 @@ import (
 
 	"github.com/LuuDinhTheTai/tzone/infrastructure/configuration"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	supabase "github.com/supabase-community/supabase-go"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"gorm.io/gorm"
@@ -17,6 +18,7 @@ type Server struct {
 	db             *gorm.DB
 	mongoClient    *mongo.Client
 	supabaseClient *supabase.Client
+	redisClient    *redis.Client
 }
 
 // NewServer creates a new server instance with the provided dependencies.
@@ -27,12 +29,14 @@ func NewServer(
 	db *gorm.DB,
 	mongoClient interface{},
 	supabaseClient interface{},
+	redisClient interface{},
 ) *Server {
 	log.Println("🔧 Creating new server instance...")
 
 	// Type assert the database clients
 	var mongoClientTyped *mongo.Client
 	var supaClientTyped *supabase.Client
+	var redisClientTyped *redis.Client
 
 	if mongoClient != nil {
 		if mc, ok := mongoClient.(*mongo.Client); ok {
@@ -52,12 +56,22 @@ func NewServer(
 		log.Println("⚠️ Server created without Supabase client")
 	}
 
+	if redisClient != nil {
+		if rc, ok := redisClient.(*redis.Client); ok {
+			redisClientTyped = rc
+			log.Println("✅ Redis client attached to server")
+		}
+	} else {
+		log.Println("⚠️ Server created without Redis client")
+	}
+
 	return &Server{
 		r:              r,
 		cfg:            cfg,
 		db:             db,
 		mongoClient:    mongoClientTyped,
 		supabaseClient: supaClientTyped,
+		redisClient:    redisClientTyped,
 	}
 }
 
