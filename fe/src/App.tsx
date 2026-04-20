@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/layout/Layout';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -20,7 +21,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import BrandManagePage from './pages/admin/BrandManagePage';
 import DeviceManagePage from './pages/admin/DeviceManagePage';
 
-function App() {
+function AppContent() {
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -28,17 +29,17 @@ function App() {
           position="top-right"
           toastOptions={{
             style: {
-              background: '#1e293b',
-              color: '#f1f5f9',
-              border: '1px solid rgba(148, 163, 184, 0.15)',
+              background: 'var(--tzone-surface-light)',
+              color: 'var(--tzone-text-primary)',
+              border: '1px solid var(--tzone-border)',
               borderRadius: '12px',
               fontSize: '14px',
             },
             success: {
-              iconTheme: { primary: '#22c55e', secondary: '#f1f5f9' },
+              iconTheme: { primary: 'var(--tzone-success)', secondary: 'var(--tzone-text-primary)' },
             },
             error: {
-              iconTheme: { primary: '#ef4444', secondary: '#f1f5f9' },
+              iconTheme: { primary: 'var(--tzone-danger)', secondary: 'var(--tzone-text-primary)' },
             },
           }}
         />
@@ -80,6 +81,14 @@ function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

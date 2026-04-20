@@ -20,7 +20,61 @@
   --tzone-danger-dark: #dc2626;
   --tzone-shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
   --tzone-shadow-soft: 0 12px 40px rgba(2, 6, 23, 0.22);
+  --tzone-glass-bg: rgba(15, 23, 42, 0.68);
+  --tzone-glass-border: rgba(148, 163, 184, 0.18);
+  --tzone-glass-strong-bg: rgba(15, 23, 42, 0.82);
+  --tzone-glass-strong-border: rgba(148, 163, 184, 0.24);
+  --tzone-page-bg:
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 26%),
+    radial-gradient(circle at bottom center, rgba(34, 197, 94, 0.06), transparent 28%),
+    linear-gradient(180deg, #020617 0%, #0b1120 55%, #020617 100%);
+  --tzone-hero-bg:
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.14), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(34, 211, 238, 0.1), transparent 30%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.1), rgba(2, 6, 23, 0.3));
+  --tzone-scroll-track: rgba(15, 23, 42, 0.7);
+  --tzone-scroll-thumb: rgba(148, 163, 184, 0.28);
+  --tzone-scroll-thumb-hover: rgba(148, 163, 184, 0.42);
+  --tzone-dropdown-bg: #1e293b;
+  --tzone-dropdown-option-bg: #0f172a;
   --tzone-radius: 1rem;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --tzone-bg: #f8fafc;
+  --tzone-surface: #ffffff;
+  --tzone-surface-light: #f1f5f9;
+  --tzone-surface-lighter: #e2e8f0;
+  --tzone-text-primary: #0f172a;
+  --tzone-text-secondary: #334155;
+  --tzone-text-muted: #64748b;
+  --tzone-border: rgba(15, 23, 42, 0.16);
+  --tzone-primary: #7c3aed;
+  --tzone-primary-light: #8b5cf6;
+  --tzone-accent: #0891b2;
+  --tzone-accent-light: #06b6d4;
+  --tzone-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+  --tzone-shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.1);
+  --tzone-glass-bg: rgba(255, 255, 255, 0.72);
+  --tzone-glass-border: rgba(15, 23, 42, 0.12);
+  --tzone-glass-strong-bg: rgba(255, 255, 255, 0.9);
+  --tzone-glass-strong-border: rgba(15, 23, 42, 0.16);
+  --tzone-page-bg:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.14), transparent 34%),
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.12), transparent 28%),
+    radial-gradient(circle at bottom center, rgba(14, 165, 233, 0.08), transparent 34%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 55%, #f8fafc 100%);
+  --tzone-hero-bg:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.1), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(6, 182, 212, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(248, 250, 252, 0.65));
+  --tzone-scroll-track: rgba(148, 163, 184, 0.2);
+  --tzone-scroll-thumb: rgba(100, 116, 139, 0.35);
+  --tzone-scroll-thumb-hover: rgba(100, 116, 139, 0.5);
+  --tzone-dropdown-bg: #ffffff;
+  --tzone-dropdown-option-bg: #f8fafc;
 }
 
 html {
@@ -33,11 +87,7 @@ body {
   margin: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--tzone-text-primary);
-  background:
-    radial-gradient(circle at top left, rgba(139, 92, 246, 0.18), transparent 30%),
-    radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 26%),
-    radial-gradient(circle at bottom center, rgba(34, 197, 94, 0.06), transparent 28%),
-    linear-gradient(180deg, #020617 0%, #0b1120 55%, #020617 100%);
+  background: var(--tzone-page-bg);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -135,30 +185,30 @@ td {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--tzone-scroll-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.28);
-  border: 2px solid rgba(15, 23, 42, 0.7);
+  background: var(--tzone-scroll-thumb);
+  border: 2px solid var(--tzone-scroll-track);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.42);
+  background: var(--tzone-scroll-thumb-hover);
 }
 
 .glass {
-  background: rgba(15, 23, 42, 0.68);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: var(--tzone-glass-bg);
+  border: 1px solid var(--tzone-glass-border);
   box-shadow: var(--tzone-shadow-soft);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
 .glass-strong {
-  background: rgba(15, 23, 42, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: var(--tzone-glass-strong-bg);
+  border: 1px solid var(--tzone-glass-strong-border);
   box-shadow: var(--tzone-shadow);
   backdrop-filter: blur(22px) saturate(170%);
   -webkit-backdrop-filter: blur(22px) saturate(170%);
@@ -180,7 +230,7 @@ td {
 
 .finder-select {
   color: var(--tzone-text-primary);
-  background-color: #1e293b;
+  background-color: var(--tzone-dropdown-bg);
   border-color: rgba(148, 163, 184, 0.35);
 }
 
@@ -194,8 +244,8 @@ td {
 }
 
 .finder-select option {
-  color: #f8fafc;
-  background-color: #0f172a;
+  color: var(--tzone-text-primary);
+  background-color: var(--tzone-dropdown-option-bg);
 }
 
 .gradient-text {
@@ -206,10 +256,7 @@ td {
 }
 
 .hero-gradient {
-  background:
-    radial-gradient(circle at top left, rgba(139, 92, 246, 0.14), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(34, 211, 238, 0.1), transparent 30%),
-    linear-gradient(180deg, rgba(2, 6, 23, 0.1), rgba(2, 6, 23, 0.3));
+  background: var(--tzone-hero-bg);
 }
 
 .card-hover {

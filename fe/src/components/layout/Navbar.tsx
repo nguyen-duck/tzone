@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 import { Menu, X, Smartphone, LogOut, Shield, ChevronDown, KeyRound } from 'lucide-react';
 import DeviceSearchBar from './DeviceSearchBar';
+import ThemeToggle from '../ui/ThemeToggle';
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -64,6 +65,7 @@ export default function Navbar() {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {isAuthenticated ? (
               <div className="relative">
                 <button
@@ -159,6 +161,8 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <hr className="border-border my-2" />
+            <ThemeToggle className="w-full justify-center border border-border" />
             <hr className="border-border my-2" />
             {isAuthenticated ? (
               <>

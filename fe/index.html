@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="TZone - Compare smartphone specifications side by side. Browse brands, compare devices, and find your perfect phone." />
     <title>TZone - Smartphone Comparison Platform</title>
+    <script>
+      (function () {
+        var key = 'tzone_theme';
+        var stored = localStorage.getItem(key);
+        var theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

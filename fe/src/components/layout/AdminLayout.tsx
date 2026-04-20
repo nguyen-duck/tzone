@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LayoutDashboard, Tag, Smartphone, ArrowLeft, LogOut, Shield } from 'lucide-react';
+import ThemeToggle from '../ui/ThemeToggle';
 
 export default function AdminLayout() {
   const { logout } = useAuth();
@@ -56,6 +57,7 @@ export default function AdminLayout() {
         </nav>
 
         <div className="p-4 border-t border-border space-y-1">
+          <ThemeToggle className="w-full justify-center border border-border" />
           <Link
             to="/"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-lighter/50 transition-all"
