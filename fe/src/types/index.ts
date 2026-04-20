@@ -172,6 +172,10 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface GoogleLoginRequest {
+  id_token: string;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;
@@ -194,11 +198,17 @@ export interface ChangePasswordRequest {
   otp: string;
 }
 
+export interface SetupPasswordRequest {
+  new_password: string;
+}
+
 export interface AuthResponse {
   access_token: string;
   user: {
     id: string;
     email: string;
+    role?: string;
+    has_password?: boolean;
   };
 }
 
@@ -206,6 +216,7 @@ export interface User {
   id: string;
   email: string;
   role?: string;
+  has_password?: boolean;
 }
 
 // ==================== Request DTOs ====================

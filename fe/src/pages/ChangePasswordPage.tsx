@@ -29,6 +29,12 @@ export default function ChangePasswordPage() {
     return () => window.clearInterval(timer);
   }, [otpCooldown]);
 
+  useEffect(() => {
+    if (user && user.has_password === false) {
+      navigate('/set-password', { replace: true });
+    }
+  }, [navigate, user]);
+
   const handleSendOtp = async () => {
     setSendingOtp(true);
     try {

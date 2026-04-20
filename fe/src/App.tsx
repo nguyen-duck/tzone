@@ -12,6 +12,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import SetPasswordPage from './pages/SetPasswordPage';
 import RegisterPage from './pages/RegisterPage';
 import BrandsPage from './pages/BrandsPage';
 import BrandDetailPage from './pages/BrandDetailPage';
@@ -59,6 +60,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <ChangePasswordPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/set-password"
+              element={
+                <ProtectedRoute>
+                  <SetPasswordPage />
                 </ProtectedRoute>
               }
             />

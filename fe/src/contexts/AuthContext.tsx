@@ -8,7 +8,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   register: (email: string, password: string, otp: string) => Promise<void>;
+  markPasswordConfigured: () => void;
   logout: () => Promise<void>;
 }
 
@@ -65,6 +67,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    setIsLoading(true);
+    try {
+      const { data } = await authApi.googleLogin({ id_token: idToken });
+      if (data.data) {
+        const { access_token, user: userData } = data.data;
+        setToken(access_token);
+        setUser(userData);
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const markPasswordConfigured = useCallback(() => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, has_password: true };
+      localStorage.setItem('user', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -79,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, isLoading, login, loginWithGoogle, register, markPasswordConfigured, logout }}>
       {children}
     </AuthContext.Provider>
   );

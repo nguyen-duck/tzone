@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, Smartphone } from 'lucide-react';
@@ -8,8 +8,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
+  const { login, loginWithGoogle, isLoading } = useAuth();
   const navigate = useNavigate();
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +23,63 @@ export default function LoginPage() {
       toast.error(err.response?.data?.message || 'Login failed');
     }
   };
+
+  useEffect(() => {
+    if (!googleClientId || !googleButtonRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const initializeGoogle = () => {
+      if (cancelled || !window.google || !googleButtonRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response: { credential?: string }) => {
+          if (!response.credential) {
+            toast.error('Google login failed');
+            return;
+          }
+
+          try {
+            await loginWithGoogle(response.credential);
+            toast.success('Logged in with Google');
+            navigate('/');
+          } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Google login failed');
+          }
+        },
+      });
+
+      googleButtonRef.current.innerHTML = '';
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: 'outline',
+        size: 'large',
+        shape: 'pill',
+        text: 'signin_with',
+        width: '320',
+      });
+    };
+
+    if (window.google) {
+      initializeGoogle();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = initializeGoogle;
+    document.head.appendChild(script);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [googleClientId, loginWithGoogle, navigate]);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16 hero-gradient">
@@ -92,6 +151,22 @@ export default function LoginPage() {
             >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
+
+            {googleClientId && (
+              <>
+                <div className="relative py-1">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase text-text-muted">
+                    <span className="bg-surface px-2">or</span>
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <div ref={googleButtonRef} />
+                </div>
+              </>
+            )}
           </form>
 
           <div className="mt-6 text-center">

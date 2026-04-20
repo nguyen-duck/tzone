@@ -215,7 +215,7 @@ func seedAdminUser(db *gorm.DB) {
 	admin := model.User{
 		ID:           uuid.New(),
 		Email:        adminEmail,
-		PasswordHash: string(hash),
+		PasswordHash: func(value string) *string { return &value }(string(hash)),
 	}
 
 	if err := db.Create(&admin).Error; err != nil {

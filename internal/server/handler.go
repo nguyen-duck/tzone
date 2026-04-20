@@ -29,6 +29,9 @@ func (s *Server) MapHandlers() error {
 		&model.Permission{},
 		&model.RolePermission{},
 	)
+	_ = s.db.Exec("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL").Error
+	_ = s.db.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub text").Error
+	_ = s.db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users (google_sub)").Error
 
 	// Seed RBAC data
 	seed.SeedAll(s.db)

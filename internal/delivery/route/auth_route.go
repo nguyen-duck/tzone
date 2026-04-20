@@ -16,6 +16,7 @@ func MapAuthRoutes(r *gin.Engine, h *handler.AuthHandler) {
 	auth.POST("/password/send-otp", h.SendResetPasswordOTP)
 	auth.POST("/password/reset", h.ResetPassword)
 	auth.POST("/login", h.Login)
+	auth.POST("/google", h.GoogleLogin)
 	auth.POST("/refresh", h.RefreshToken)
 	auth.POST("/logout", h.Logout)
 
@@ -23,4 +24,5 @@ func MapAuthRoutes(r *gin.Engine, h *handler.AuthHandler) {
 	authProtected.Use(middleware.JWTAuth())
 	authProtected.POST("/password/change/send-otp", h.SendChangePasswordOTP)
 	authProtected.POST("/password/change", h.ChangePassword)
+	authProtected.POST("/password/setup", h.SetupPassword)
 }

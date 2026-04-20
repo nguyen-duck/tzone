@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/LuuDinhTheTai/tzone/internal/dto"
 	"github.com/LuuDinhTheTai/tzone/internal/service"
@@ -129,6 +130,33 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	response.Success(c, http.StatusOK, "password changed successfully", nil)
 }
 
+func (h *AuthHandler) SetupPassword(c *gin.Context) {
+	userIDValue, ok := c.Get("user_id")
+	if !ok {
+		response.Error(c, http.StatusUnauthorized, "unauthorized", nil)
+		return
+	}
+
+	userID, ok := userIDValue.(string)
+	if !ok || strings.TrimSpace(userID) == "" {
+		response.Error(c, http.StatusUnauthorized, "unauthorized", nil)
+		return
+	}
+
+	var req dto.SetupPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	if err := h.authService.SetupPassword(userID, req.NewPassword); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "password setup successfully", nil)
+}
+
 // login endpoint
 func (h *AuthHandler) Login(c *gin.Context) {
 
@@ -151,9 +179,36 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	response.Success(c, http.StatusOK, "login success", gin.H{
 		"access_token": accessToken,
 		"user": gin.H{
-			"id":    user.ID,
-			"email": user.Email,
-			"role":  roleName,
+			"id":           user.ID,
+			"email":        user.Email,
+			"role":         roleName,
+			"has_password": user.PasswordHash != nil && strings.TrimSpace(*user.PasswordHash) != "",
+		},
+	})
+}
+
+func (h *AuthHandler) GoogleLogin(c *gin.Context) {
+	var req dto.GoogleLoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	accessToken, refreshToken, user, roleName, err := h.authService.LoginWithGoogle(c.Request.Context(), req.IDToken)
+	if err != nil {
+		response.Error(c, http.StatusUnauthorized, err.Error(), nil)
+		return
+	}
+
+	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "", false, true)
+
+	response.Success(c, http.StatusOK, "login success", gin.H{
+		"access_token": accessToken,
+		"user": gin.H{
+			"id":           user.ID,
+			"email":        user.Email,
+			"role":         roleName,
+			"has_password": user.PasswordHash != nil && strings.TrimSpace(*user.PasswordHash) != "",
 		},
 	})
 }

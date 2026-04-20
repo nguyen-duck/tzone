@@ -95,12 +95,12 @@ export default function Navbar() {
                       </>
                     )}
                     <Link
-                      to="/change-password"
+                      to={user?.has_password ? '/change-password' : '/set-password'}
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-light transition-colors"
                     >
                       <KeyRound size={16} />
-                      Change Password
+                      {user?.has_password ? 'Change Password' : 'Set Password'}
                     </Link>
                     <hr className="border-border my-1" />
                     <button
@@ -178,12 +178,12 @@ export default function Navbar() {
                   </Link>
                 )}
                 <Link
-                  to="/change-password"
+                  to={user?.has_password ? '/change-password' : '/set-password'}
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-surface-light"
                 >
                   <KeyRound size={16} />
-                  Change Password
+                  {user?.has_password ? 'Change Password' : 'Set Password'}
                 </Link>
                 <button
                   onClick={() => { handleLogout(); setMobileOpen(false); }}

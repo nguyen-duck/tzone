@@ -3,15 +3,20 @@ import type {
   ApiResponse,
   AuthResponse,
   LoginRequest,
+  GoogleLoginRequest,
   RegisterRequest,
   SendOtpRequest,
   ResetPasswordRequest,
   ChangePasswordRequest,
+  SetupPasswordRequest,
 } from '../types';
 
 export const authApi = {
   login: (data: LoginRequest) =>
     client.post<ApiResponse<AuthResponse>>('/auth/login', data),
+
+  googleLogin: (data: GoogleLoginRequest) =>
+    client.post<ApiResponse<AuthResponse>>('/auth/google', data),
 
   register: (data: RegisterRequest) =>
     client.post<ApiResponse>('/auth/register', data),
@@ -30,6 +35,9 @@ export const authApi = {
 
   changePassword: (data: ChangePasswordRequest) =>
     client.post<ApiResponse>('/auth/password/change', data),
+
+  setupPassword: (data: SetupPasswordRequest) =>
+    client.post<ApiResponse>('/auth/password/setup', data),
 
   refresh: () =>
     client.post<ApiResponse<{ access_token: string }>>('/auth/refresh'),

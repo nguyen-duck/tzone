@@ -85,7 +85,15 @@ func (r *UserRepository) FindByEmailWithRole(email string) (*model.User, string,
 }
 
 func (r *UserRepository) UpdatePasswordHash(userID string, passwordHash string) error {
+	hash := passwordHash
 	return r.db.Model(&model.User{}).
 		Where("id = ?", userID).
-		Update("password_hash", passwordHash).Error
+		Update("password_hash", &hash).Error
+}
+
+func (r *UserRepository) UpdateGoogleSub(userID string, googleSub string) error {
+	sub := googleSub
+	return r.db.Model(&model.User{}).
+		Where("id = ?", userID).
+		Update("google_sub", &sub).Error
 }

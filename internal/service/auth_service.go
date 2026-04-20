@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	"github.com/LuuDinhTheTai/tzone/util/jwt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/api/idtoken"
+	"gorm.io/gorm"
 )
 
 const (
@@ -147,7 +151,7 @@ func (s *AuthService) Register(emailAddr string, password string, otp string) er
 	user := model.User{
 		ID:           uuid.New(),
 		Email:        emailAddr,
-		PasswordHash: string(hash),
+		PasswordHash: stringPtr(string(hash)),
 	}
 
 	// Gắn role mặc định là User cho tài khoản mới đăng ký
@@ -183,12 +187,15 @@ func (s *AuthService) ChangePassword(userID string, oldPassword string, newPassw
 	if err != nil {
 		return errors.New("user not found")
 	}
+	if !hasPassword(user) {
+		return errors.New("password is not set, please setup password first")
+	}
 
 	if err := s.verifyOTP(normalizeEmail(user.Email), otpPurposeChangePassword, otp); err != nil {
 		return err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword))
+	err = bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(oldPassword))
 	if err != nil {
 		return errors.New("old password is incorrect")
 	}
@@ -207,15 +214,19 @@ func (s *AuthService) ChangePassword(userID string, oldPassword string, newPassw
 
 // login
 func (s *AuthService) Login(email string, password string) (string, string, *model.User, string, error) {
+	email = normalizeEmail(email)
 
 	user, roleName, err := s.userRepo.FindByEmailWithRole(email)
 
 	if err != nil {
 		return "", "", nil, "", errors.New("invalid email or password")
 	}
+	if !hasPassword(user) {
+		return "", "", nil, "", errors.New("password is not set for this account")
+	}
 
 	err = bcrypt.CompareHashAndPassword(
-		[]byte(user.PasswordHash),
+		[]byte(*user.PasswordHash),
 		[]byte(password),
 	)
 
@@ -223,23 +234,126 @@ func (s *AuthService) Login(email string, password string) (string, string, *mod
 		return "", "", nil, "", errors.New("invalid email or password")
 	}
 
-	jti := uuid.New()
-	accessToken, refreshToken, err := jwt.GenerateTokenPair(user.ID, jti)
+	accessToken, refreshToken, err := s.issueTokenPair(user.ID)
 	if err != nil {
-		return "", "", nil, "", errors.New("failed to generate tokens")
-	}
-
-	// Save Refresh Token in DB
-	rtRecord := &model.RefreshToken{
-		ID:        jti,
-		UserID:    user.ID,
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
-	}
-	if err := s.tokenRepo.Create(rtRecord); err != nil {
-		return "", "", nil, "", errors.New("failed to save session")
+		return "", "", nil, "", err
 	}
 
 	return accessToken, refreshToken, user, roleName, nil
+}
+
+func (s *AuthService) LoginWithGoogle(ctx context.Context, idToken string) (string, string, *model.User, string, error) {
+	clientID := strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_ID"))
+	if clientID == "" {
+		return "", "", nil, "", errors.New("google sign-in is not configured")
+	}
+
+	payload, err := idtoken.Validate(ctx, idToken, clientID)
+	if err != nil {
+		return "", "", nil, "", errors.New("invalid google token")
+	}
+
+	emailValue, _ := payload.Claims["email"].(string)
+	emailValue = normalizeEmail(emailValue)
+	if emailValue == "" {
+		return "", "", nil, "", errors.New("google account email is missing")
+	}
+
+	emailVerified, _ := payload.Claims["email_verified"].(bool)
+	if !emailVerified {
+		return "", "", nil, "", errors.New("google account email is not verified")
+	}
+
+	googleSub := strings.TrimSpace(payload.Subject)
+	if googleSub == "" {
+		return "", "", nil, "", errors.New("google account subject is missing")
+	}
+
+	user, roleName, err := s.userRepo.FindByEmailWithRole(emailValue)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", "", nil, "", errors.New("failed to query user")
+		}
+
+		newUser := model.User{
+			ID:        uuid.New(),
+			Email:     emailValue,
+			GoogleSub: stringPtr(googleSub),
+		}
+		if createErr := s.userRepo.Create(&newUser, model.RoleUser); createErr != nil {
+			return "", "", nil, "", errors.New("failed to create user")
+		}
+
+		user, roleName, err = s.userRepo.FindByEmailWithRole(emailValue)
+		if err != nil {
+			return "", "", nil, "", errors.New("failed to load user")
+		}
+	} else {
+		if user.GoogleSub == nil {
+			if updateErr := s.userRepo.UpdateGoogleSub(user.ID.String(), googleSub); updateErr != nil {
+				return "", "", nil, "", errors.New("failed to link google account")
+			}
+			user.GoogleSub = stringPtr(googleSub)
+		} else if strings.TrimSpace(*user.GoogleSub) != googleSub {
+			return "", "", nil, "", errors.New("google account does not match this email")
+		}
+	}
+
+	accessToken, refreshToken, err := s.issueTokenPair(user.ID)
+	if err != nil {
+		return "", "", nil, "", err
+	}
+
+	return accessToken, refreshToken, user, roleName, nil
+}
+
+func (s *AuthService) SetupPassword(userID string, newPassword string) error {
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return errors.New("user not found")
+	}
+	if hasPassword(user) {
+		return errors.New("password is already set")
+	}
+
+	newHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("failed to hash new password")
+	}
+
+	if err := s.userRepo.UpdatePasswordHash(userID, string(newHash)); err != nil {
+		return errors.New("failed to update password")
+	}
+
+	return nil
+}
+
+func (s *AuthService) issueTokenPair(userID uuid.UUID) (string, string, error) {
+	jti := uuid.New()
+	accessToken, refreshToken, err := jwt.GenerateTokenPair(userID, jti)
+	if err != nil {
+		return "", "", errors.New("failed to generate tokens")
+	}
+
+	rtRecord := &model.RefreshToken{
+		ID:        jti,
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+	}
+	if err := s.tokenRepo.Create(rtRecord); err != nil {
+		return "", "", errors.New("failed to save session")
+	}
+
+	return accessToken, refreshToken, nil
+}
+
+func stringPtr(value string) *string {
+	v := value
+	return &v
+}
+
+func hasPassword(user *model.User) bool {
+	return user != nil && user.PasswordHash != nil && strings.TrimSpace(*user.PasswordHash) != ""
 }
 
 // RefreshToken handles generating a new token pair from a valid refresh token
